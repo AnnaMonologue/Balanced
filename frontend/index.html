@@ -1,0 +1,461 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>拉磨打卡工作台</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="./assets/js/tailwind.config.js"></script>
+<link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<link rel="stylesheet" href="./assets/css/styles.css">
+</head>
+<body class="bg-[#E6EFE9] min-h-screen pb-10 overflow-y-scroll text-dark">
+<div class="container mx-auto px-4 py-8 max-w-[90rem]">
+
+<header class="text-center mb-6">
+<h1 class="text-3xl md:text-4xl font-bold mb-5 flex flex-wrap justify-center items-center gap-3">
+勇敢面包，不怕困难！ <div class="flex flex-wrap items-center justify-center gap-2"><span class="text-sm bg-primary/10 text-primary px-3 py-1 rounded-full font-medium" id="current-date"></span><button onclick="toggleTheme()" class="px-3 py-1 rounded-full bg-secondary/10 text-secondary hover:bg-secondary/20 transition-colors text-sm font-medium flex items-center gap-1 shadow-sm cursor-pointer"><i class="fa fa-moon-o" id="theme-icon"></i><span id="theme-text">夜间</span></button><button id="open-sync-btn" class="px-3 py-1 rounded-full bg-primary/10 text-primary hover:bg-primary/20 transition-colors text-sm font-medium flex items-center gap-1 shadow-sm cursor-pointer"><i class="fa fa-refresh"></i><span id="sync-btn-text">开启同步</span></button></div>
+</h1>
+<div class="inline-flex flex-wrap justify-center bg-white rounded-xl p-1.5 card-shadow gap-1">
+<button id="nav-today" class="nav-btn nav-active px-6 py-2.5 rounded-lg font-bold transition-all text-sm md:text-base" onclick="switchPage('today')"><i class="fa fa-home mr-2"></i>今日打卡</button>
+<button id="nav-life" class="nav-btn nav-inactive px-6 py-2.5 rounded-lg font-bold transition-all text-sm md:text-base" onclick="switchPage('life')"><i class="fa fa-coffee mr-2"></i>生活记录</button>
+<button id="nav-plan" class="nav-btn nav-inactive px-6 py-2.5 rounded-lg font-bold transition-all text-sm md:text-base" onclick="switchPage('plan')"><i class="fa fa-map-signs mr-2"></i>未来规划</button>
+<button id="nav-history" class="nav-btn nav-inactive px-6 py-2.5 rounded-lg font-bold transition-all text-sm md:text-base" onclick="switchPage('history')"><i class="fa fa-book mr-2"></i>历史手账</button>
+<button id="nav-stats" class="nav-btn nav-inactive px-6 py-2.5 rounded-lg font-bold transition-all text-sm md:text-base" onclick="switchPage('stats')"><i class="fa fa-bar-chart mr-2"></i>数据统计</button>
+</div>
+</header>
+
+<div id="page-today" class="page-view fade-in space-y-6">
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+<div class="bg-white rounded-2xl p-6 card-shadow card-hover flex flex-col justify-center lg:col-span-1">
+<div class="flex items-center justify-between mb-4 border-b border-gray-100 pb-2">
+<h3 class="text-lg font-bold">专注统计</h3><i class="fa fa-clock-o text-primary text-xl"></i>
+</div>
+<div class="grid grid-cols-2 gap-4 flex-1">
+<div class="bg-primary/10 rounded-xl p-3 border border-primary/20 flex flex-col justify-center items-center text-center">
+<p class="text-xs font-bold text-gray-500 mb-1">学习总时长</p>
+<p class="text-3xl font-bold text-primary timer-digit" id="learning-time">00:00:00</p>
+</div>
+<div class="bg-entertainment/10 rounded-xl p-3 border border-entertainment/20 flex flex-col justify-center items-center text-center">
+<p class="text-xs font-bold text-gray-500 mb-1">拉磨时长</p>
+<p class="text-3xl font-bold text-entertainment timer-digit" id="display-grind-time">00:00:00</p>
+</div>
+</div>
+</div>
+<div class="bg-white rounded-2xl p-6 card-shadow card-hover lg:col-span-2">
+<div class="flex items-center mb-4 border-b border-gray-100 pb-2">
+<i class="fa fa-calendar-check-o text-accent text-xl mr-2"></i><h3 class="text-lg font-bold">上工打卡</h3>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+<div class="bg-primary/10 rounded-xl p-4 border border-primary/20">
+<h4 class="font-bold text-primary mb-3 flex items-center justify-center"><i class="fa fa-sun-o mr-1"></i> 上午段</h4>
+<div class="flex justify-between text-sm mb-1 px-1"><span class="text-gray-500">上班</span><span id="m-in" class="font-bold">--:--</span></div>
+<div class="flex justify-between text-sm mb-4 px-1"><span class="text-gray-500">下班</span><span id="m-out" class="font-bold">--:--</span></div>
+<div class="flex gap-2"><button class="flex-1 py-1.5 bg-primary text-white rounded font-bold text-sm shadow-sm hover:opacity-90" onclick="punchPeriod('morning','in')">上班</button><button class="flex-1 py-1.5 bg-gray-300 text-gray-700 rounded font-bold text-sm hover:bg-gray-400" onclick="punchPeriod('morning','out')">下班</button></div>
+</div>
+<div class="bg-secondary/10 rounded-xl p-4 border border-secondary/20">
+<h4 class="font-bold text-secondary mb-3 flex items-center justify-center"><i class="fa fa-coffee mr-1"></i> 下午段</h4>
+<div class="flex justify-between text-sm mb-1 px-1"><span class="text-gray-500">上班</span><span id="a-in" class="font-bold">--:--</span></div>
+<div class="flex justify-between text-sm mb-4 px-1"><span class="text-gray-500">下班</span><span id="a-out" class="font-bold">--:--</span></div>
+<div class="flex gap-2"><button class="flex-1 py-1.5 bg-secondary text-white rounded font-bold text-sm shadow-sm hover:opacity-90" onclick="punchPeriod('afternoon','in')">上班</button><button class="flex-1 py-1.5 bg-gray-300 text-gray-700 rounded font-bold text-sm hover:bg-gray-400" onclick="punchPeriod('afternoon','out')">下班</button></div>
+</div>
+<div class="bg-accent/10 rounded-xl p-4 border border-accent/20">
+<h4 class="font-bold text-accent mb-3 flex items-center justify-center"><i class="fa fa-moon-o mr-1"></i> 晚间段</h4>
+<div class="flex justify-between text-sm mb-1 px-1"><span class="text-gray-500">上班</span><span id="e-in" class="font-bold">--:--</span></div>
+<div class="flex justify-between text-sm mb-4 px-1"><span class="text-gray-500">下班</span><span id="e-out" class="font-bold">--:--</span></div>
+<div class="flex gap-2"><button class="flex-1 py-1.5 bg-accent text-white rounded font-bold text-sm shadow-sm hover:opacity-90" onclick="punchPeriod('evening','in')">上班</button><button class="flex-1 py-1.5 bg-gray-300 text-gray-700 rounded font-bold text-sm hover:bg-gray-400" onclick="punchPeriod('evening','out')">下班</button></div>
+</div>
+</div>
+</div>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+<div class="bg-white rounded-2xl p-5 card-shadow card-hover flex flex-col justify-between">
+<div class="flex items-center justify-between mb-2"><h3 class="text-lg font-bold">睡眠结算</h3><div class="w-8 h-8 rounded-full bg-sleep/10 flex items-center justify-center"><i class="fa fa-bed text-sleep"></i></div></div>
+<div class="flex justify-between text-xs text-gray-500 mb-1 px-1"><div>入睡: <span id="sleep-in-display" class="font-bold text-gray-700">--:--</span></div><div>醒来: <span id="sleep-out-display" class="font-bold text-gray-700">--:--</span></div></div>
+<div class="text-3xl font-bold text-sleep timer-digit mb-3 text-center" id="sleep-time">00:00:00</div>
+<button id="toggle-sleep" class="w-full py-2 rounded-lg bg-sleep/20 text-sleep font-bold hover:bg-sleep/30 transition-all shadow-sm">记录入睡时间</button>
+</div>
+<div class="bg-white rounded-2xl p-5 card-shadow card-hover flex flex-col justify-between">
+<div class="flex items-center justify-between mb-2"><h3 class="text-lg font-bold">摸鱼耗时</h3><div class="w-8 h-8 rounded-full bg-warning/10 flex items-center justify-center"><i class="fa fa-gamepad text-warning"></i></div></div>
+<div class="text-3xl font-bold text-warning timer-digit mb-3 text-center mt-auto" id="chores-time">00:00:00</div>
+<input type="text" id="chores-input" class="w-full p-2 mb-3 border border-gray-200 rounded text-sm outline-none focus:border-warning" placeholder="写下摸鱼内容...">
+<button id="toggle-chores" class="w-full py-2 rounded-lg bg-warning/20 text-warning font-bold hover:bg-warning/30 transition-colors">开始记录摸鱼</button>
+</div>
+<div class="bg-white rounded-2xl p-5 card-shadow card-hover flex flex-col justify-between">
+<div class="flex items-center justify-between mb-2"><h3 class="text-lg font-bold">拉磨耗时</h3><div class="w-8 h-8 rounded-full bg-entertainment/10 flex items-center justify-center"><i class="fa fa-coffee text-entertainment"></i></div></div>
+<div class="text-3xl font-bold text-entertainment timer-digit mb-3 text-center mt-auto" id="phone-time">00:00:00</div>
+<input type="text" id="phone-input" class="w-full p-2 mb-3 border border-gray-200 rounded text-sm outline-none focus:border-entertainment" placeholder="写下拉磨内容...">
+<button id="toggle-phone" class="w-full py-2 rounded-lg bg-entertainment/20 text-entertainment font-bold hover:bg-entertainment/30 transition-colors">开始记录拉磨</button>
+</div>
+</div>
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
+<div class="lg:col-span-2">
+<div class="bg-white rounded-2xl p-6 card-shadow">
+<div class="flex justify-between items-center mb-6 border-b border-gray-100 pb-3">
+<h2 class="text-xl font-bold flex items-center"><i class="fa fa-book text-primary mr-2"></i> 学习统计</h2>
+<button id="save-notes-btn" class="px-5 py-2 rounded-lg bg-primary text-white font-bold hover:bg-opacity-90 transition-all shadow-sm text-sm"><i class="fa fa-save mr-1"></i>保存所有文本</button>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+<div class="border border-primary/20 rounded-xl p-5 bg-primary/5">
+<div class="flex items-center justify-between mb-3 border-b border-primary/20 pb-2"><input type="text" id="label-literature" value="阅读" maxlength="12" title="点击修改名称" class="min-w-0 w-28 font-bold text-lg text-primary bg-transparent border-b border-transparent hover:border-primary/30 focus:border-primary outline-none" aria-label="修改阅读分类名称"><span class="text-xl font-bold text-primary timer-digit" id="literature-time">00:00:00</span></div>
+<button id="toggle-literature" class="w-full py-1.5 mb-3 rounded border border-primary text-primary hover:bg-primary hover:text-white transition-colors text-sm font-bold">记录开始</button>
+<textarea id="literature-notes" class="w-full p-3 border border-gray-200 rounded-lg text-sm outline-none bg-white" rows="3" placeholder="文献/书籍记录..."></textarea>
+</div>
+<div class="border border-secondary/20 rounded-xl p-5 bg-secondary/5">
+<div class="flex items-center justify-between mb-3 border-b border-secondary/20 pb-2"><input type="text" id="label-experiment" value="上课" maxlength="12" title="点击修改名称" class="min-w-0 w-28 font-bold text-lg text-secondary bg-transparent border-b border-transparent hover:border-secondary/30 focus:border-secondary outline-none" aria-label="修改上课分类名称"><span class="text-xl font-bold text-secondary timer-digit" id="experiment-time">00:00:00</span></div>
+<button id="toggle-lamoModule" class="w-full py-1.5 mb-3 rounded border border-secondary text-secondary hover:bg-secondary hover:text-white transition-colors text-sm font-bold">记录开始</button>
+<textarea id="experiment-notes" class="w-full p-3 border border-gray-200 rounded-lg text-sm outline-none bg-white" rows="3" placeholder="实习/线下课程..."></textarea>
+</div>
+<div class="border border-warning/20 rounded-xl p-5 bg-warning/5">
+<div class="flex items-center justify-between mb-3 border-b border-warning/20 pb-2"><input type="text" id="label-writing" value="论文" maxlength="12" title="点击修改名称" class="min-w-0 w-28 font-bold text-lg text-warning bg-transparent border-b border-transparent hover:border-warning/30 focus:border-warning outline-none" aria-label="修改论文分类名称"><span class="text-xl font-bold text-warning timer-digit" id="writing-time">00:00:00</span></div>
+<button id="toggle-writing" class="w-full py-1.5 mb-3 rounded border border-warning text-warning hover:bg-warning hover:text-white transition-colors text-sm font-bold">记录开始</button>
+<textarea id="writing-notes" class="w-full p-3 border border-gray-200 rounded-lg text-sm outline-none bg-white" rows="3" placeholder="写作/字数打卡..."></textarea>
+</div>
+<div class="border border-accent/20 rounded-xl p-5 bg-accent/5">
+<div class="flex items-center justify-between mb-3 border-b border-accent/20 pb-2"><input type="text" id="label-exercise" value="运动" maxlength="12" title="点击修改名称" class="min-w-0 w-28 font-bold text-lg text-accent bg-transparent border-b border-transparent hover:border-accent/30 focus:border-accent outline-none" aria-label="修改运动分类名称"><span class="text-xl font-bold text-accent timer-digit" id="exercise-time">00:00:00</span></div>
+<button id="toggle-exercise" class="w-full py-1.5 mb-3 rounded border border-accent text-accent hover:bg-accent hover:text-white transition-colors text-sm font-bold">记录开始</button>
+<textarea id="exercise-notes" class="w-full p-3 border border-gray-200 rounded-lg text-sm outline-none bg-white" rows="3" placeholder="今日运动流汗..."></textarea>
+</div>
+</div>
+</div>
+</div>
+<div class="lg:col-span-1 flex flex-col h-full">
+<div class="bg-white rounded-2xl p-6 card-shadow flex-1 flex flex-col h-full transition-all">
+<h2 class="text-xl font-bold mb-4 flex items-center justify-between border-b border-gray-100 pb-2"><span><i class="fa fa-list-check text-primary mr-2"></i>今日待办</span><span id="task-counter" class="text-sm font-normal text-gray-500">(0/0)</span></h2>
+<div class="flex gap-2 mb-4">
+<input type="text" id="new-task-input" class="flex-1 p-2 border border-gray-200 rounded text-sm outline-none focus:border-primary" placeholder="输入任务...">
+<button id="save-task-btn" class="px-4 rounded bg-primary text-white hover:bg-opacity-90 transition-colors"><i class="fa fa-plus"></i></button>
+</div>
+<div id="task-list" class="flex-1 space-y-2 pb-2"></div>
+</div>
+</div>
+</div>
+</div>
+
+<div id="page-life" class="page-view hidden fade-in space-y-6">
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
+<div class="bg-white rounded-2xl p-6 card-shadow h-[500px] flex flex-col">
+<div class="flex items-center mb-4 border-b border-gray-100 pb-3">
+<div class="w-10 h-10 rounded-full bg-warning/10 flex items-center justify-center mr-3"><i class="fa fa-cutlery text-warning text-xl"></i></div><h2 class="text-xl font-bold">干饭</h2>
+</div>
+<div class="flex gap-2 mb-4"><input type="text" id="meal-input" class="flex-1 p-2.5 border border-gray-200 rounded-lg text-sm outline-none focus:border-warning" placeholder="吃了什么好吃的..."><button onclick="addLifeItem('meal')" class="px-4 rounded-lg bg-warning text-white font-bold hover:bg-opacity-90 transition-colors"><i class="fa fa-plus"></i></button></div>
+<div id="meal-list" class="flex-1 overflow-y-auto space-y-2 pr-2"></div>
+</div>
+<div class="bg-white rounded-2xl p-6 card-shadow h-[500px] flex flex-col">
+<div class="flex items-center mb-4 border-b border-gray-100 pb-3">
+<div class="w-10 h-10 rounded-full bg-sleep/10 flex items-center justify-center mr-3"><i class="fa fa-bath text-sleep text-xl"></i></div><h2 class="text-xl font-bold">洗漱</h2>
+</div>
+<div class="grid grid-cols-2 gap-4 mb-5">
+<button onclick="addLifeItem('hygiene', '刷牙')" class="py-4 rounded-xl bg-sleep/10 text-sleep font-bold hover:bg-sleep/20 border border-sleep/20 shadow-sm transition-colors"><i class="fa fa-smile-o mb-1 block text-2xl"></i>刷牙</button>
+<button onclick="addLifeItem('hygiene', '洗澡')" class="py-4 rounded-xl bg-sleep/10 text-sleep font-bold hover:bg-sleep/20 border border-sleep/20 shadow-sm transition-colors"><i class="fa fa-shower mb-1 block text-2xl"></i>洗澡</button>
+<button onclick="addLifeItem('hygiene', '洗头')" class="py-4 rounded-xl bg-sleep/10 text-sleep font-bold hover:bg-sleep/20 border border-sleep/20 shadow-sm transition-colors"><i class="fa fa-scissors mb-1 block text-2xl"></i>洗头</button>
+<button onclick="addLifeItem('hygiene', '护肤')" class="py-4 rounded-xl bg-sleep/10 text-sleep font-bold hover:bg-sleep/20 border border-sleep/20 shadow-sm transition-colors"><i class="fa fa-leaf mb-1 block text-2xl"></i>护肤</button>
+</div>
+<div id="hygiene-list" class="flex-1 overflow-y-auto space-y-2 pr-2 border-t border-gray-50 pt-3"></div>
+</div>
+<div class="bg-white rounded-2xl p-6 card-shadow h-[500px] flex flex-col">
+<div class="flex items-center justify-between mb-4 border-b border-gray-100 pb-3">
+<div class="flex items-center"><div class="w-10 h-10 rounded-full bg-success/10 flex items-center justify-center mr-3"><i class="fa fa-cny text-success text-xl"></i></div><h2 class="text-xl font-bold">财务</h2></div>
+</div>
+<div class="grid grid-cols-2 gap-4 mb-4 text-center">
+<div class="bg-danger/5 border border-danger/20 rounded-lg p-2"><p class="text-xs text-gray-500">今日花费</p><p class="text-lg font-bold text-danger">¥ <span id="expense-total">0.00</span></p></div>
+<div class="bg-success/5 border border-success/20 rounded-lg p-2"><p class="text-xs text-gray-500">今日收入</p><p class="text-lg font-bold text-success">¥ <span id="income-total">0.00</span></p></div>
+</div>
+<div class="flex flex-col gap-2 mb-4">
+<div class="flex gap-2">
+<select id="trans-io" class="w-1/3 p-2 border border-gray-200 rounded-lg text-sm outline-none bg-white">
+<option value="inc">收入</option>
+<option value="exp">支出</option>
+</select>
+<select id="trans-domain" class="w-1/3 p-2 border border-gray-200 rounded-lg text-sm outline-none bg-white">
+<option value="fan">二次</option>
+<option value="irl">三次</option>
+</select>
+<input type="number" id="trans-cost" class="flex-1 p-2 border border-gray-200 rounded-lg text-sm outline-none" placeholder="金额">
+</div>
+<div class="flex gap-2">
+<input type="text" id="trans-name" class="flex-1 p-2 border border-gray-200 rounded-lg text-sm outline-none" placeholder="换行录入具体项目...">
+<button onclick="addLifeItem('transaction')" class="px-4 rounded-lg bg-success text-white font-bold hover:bg-opacity-90 transition-colors"><i class="fa fa-plus"></i></button>
+</div>
+</div>
+<div id="transaction-list" class="flex-1 overflow-y-auto space-y-2 pr-2"></div>
+</div>
+</div>
+</div>
+
+<div id="page-plan" class="page-view hidden fade-in space-y-6">
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
+<div class="bg-beige rounded-2xl p-6 border border-[#E8E4D9] card-shadow flex flex-col">
+<div class="flex items-center justify-between gap-2 border-b border-[#E8E4D9] pb-3 mb-4 shrink-0">
+<div class="flex items-center min-w-0"><i class="fa fa-graduation-cap text-secondary text-2xl mr-3"></i><h2 class="text-xl font-bold text-gray-800">学习长线规划</h2></div>
+<div class="inline-flex rounded-lg bg-white/70 p-1 border border-white shadow-sm shrink-0"><button id="study-plan-mode-pending" onclick="setPlanListMode('study','pending')" class="px-2.5 py-1 rounded-md text-xs font-bold bg-secondary text-white shadow-sm">未完成</button><button id="study-plan-mode-completed" onclick="setPlanListMode('study','completed')" class="px-2.5 py-1 rounded-md text-xs font-bold text-gray-500 hover:bg-white">已完成</button></div>
+</div>
+<div class="space-y-5">
+<div class="bg-white/70 rounded-xl p-4 shadow-sm border border-white">
+<h3 class="font-bold text-gray-700 mb-3 border-l-4 border-secondary pl-2">课程相关</h3>
+<div class="flex flex-col gap-2 mb-3">
+<input type="text" id="plan-course-input" class="p-2 border border-gray-200 rounded-md text-sm bg-white" placeholder="新增课程待办...">
+<input type="text" id="plan-course-notes" class="p-2 border border-gray-200 rounded-md text-sm bg-white" placeholder="备注">
+<div class="flex gap-2"><input type="date" id="plan-course-date" class="flex-1 p-2 border border-gray-200 rounded-md text-sm text-gray-600 bg-white"><button onclick="addPlanItem('course')" class="px-4 rounded-md bg-secondary text-white"><i class="fa fa-plus"></i></button></div>
+</div>
+<div id="plan-course-list" class="space-y-2 max-h-[260px] overflow-y-auto pr-2"></div>
+</div>
+<div class="bg-white/70 rounded-xl p-4 shadow-sm border border-white">
+<h3 class="font-bold text-gray-700 mb-3 border-l-4 border-secondary pl-2">项目计划</h3>
+<div class="flex flex-col gap-2 mb-3">
+<input type="text" id="plan-project-input" class="p-2 border border-gray-200 rounded-md text-sm bg-white" placeholder="新增项目计划...">
+<input type="text" id="plan-project-notes" class="p-2 border border-gray-200 rounded-md text-sm bg-white" placeholder="备注">
+<div class="flex gap-2"><input type="date" id="plan-project-date" class="flex-1 p-2 border border-gray-200 rounded-md text-sm text-gray-600 bg-white"><button onclick="addPlanItem('project')" class="px-4 rounded-md bg-secondary text-white"><i class="fa fa-plus"></i></button></div>
+</div>
+<div id="plan-project-list" class="space-y-2 max-h-[260px] overflow-y-auto pr-2"></div>
+</div>
+</div>
+</div>
+<div class="bg-beige rounded-2xl p-6 border border-[#E8E4D9] card-shadow flex flex-col">
+<div class="flex items-center justify-between gap-2 border-b border-[#E8E4D9] pb-3 mb-4 shrink-0">
+<div class="flex items-center min-w-0"><i class="fa fa-paint-brush text-entertainment text-2xl mr-3"></i><h2 class="text-xl font-bold text-gray-800">同人创作规划</h2></div>
+<div class="inline-flex rounded-lg bg-white/70 p-1 border border-white shadow-sm shrink-0"><button id="fan-plan-mode-pending" onclick="setPlanListMode('fan','pending')" class="px-2.5 py-1 rounded-md text-xs font-bold bg-entertainment text-white shadow-sm">未完成</button><button id="fan-plan-mode-completed" onclick="setPlanListMode('fan','completed')" class="px-2.5 py-1 rounded-md text-xs font-bold text-gray-500 hover:bg-white">已完成</button></div>
+</div>
+<div class="space-y-5">
+<div class="bg-white/70 rounded-xl p-4 shadow-sm border border-white">
+<h3 class="font-bold text-gray-700 mb-3 border-l-4 border-entertainment pl-2">接稿排单</h3>
+<div class="grid grid-cols-2 gap-2 mb-3">
+<input type="text" id="comm-client" placeholder="单主" class="p-2 border border-gray-200 rounded-md text-sm bg-white">
+<input type="text" id="comm-title" placeholder="单名" class="p-2 border border-gray-200 rounded-md text-sm bg-white">
+<input type="number" id="comm-node" placeholder="节点" class="p-2 border border-gray-200 rounded-md text-sm bg-white">
+<input type="number" id="comm-price" placeholder="价格 (¥)" class="p-2 border border-gray-200 rounded-md text-sm bg-white">
+<input type="text" id="comm-notes" placeholder="备注" class="col-span-2 p-2 border border-gray-200 rounded-md text-sm bg-white">
+<div class="col-span-2 flex gap-2">
+<input type="date" id="comm-date" class="flex-1 p-2 border border-gray-200 rounded-md text-sm text-gray-600 bg-white">
+<button onclick="addCommItem()" class="px-4 rounded-md bg-entertainment text-white font-bold w-1/3">添加</button>
+</div>
+</div>
+<div id="plan-comm-list" class="space-y-3 mt-4 max-h-[320px] overflow-y-auto pr-2"></div>
+</div>
+<div class="bg-white/70 rounded-xl p-4 shadow-sm border border-white">
+<h3 class="font-bold text-gray-700 mb-3 border-l-4 border-fanblue pl-2">为爱发电</h3>
+<div class="flex flex-col gap-2 mb-3">
+<input type="text" id="plan-con-input" class="p-2 border border-gray-200 rounded-md text-sm bg-white" placeholder="新增规划...">
+<div class="flex gap-2"><input type="date" id="plan-con-date" class="flex-1 p-2 border border-gray-200 rounded-md text-sm text-gray-600 bg-white"><button onclick="addPlanItem('con')" class="px-4 rounded-md bg-fanblue text-white"><i class="fa fa-plus"></i></button></div>
+</div>
+<div id="plan-con-list" class="space-y-2 max-h-[250px] overflow-y-auto pr-2"></div>
+</div>
+</div>
+</div>
+<div class="bg-beige rounded-2xl p-6 border border-[#E8E4D9] card-shadow flex flex-col">
+<div class="flex items-center justify-between gap-2 border-b border-[#E8E4D9] pb-3 shrink-0 mb-4">
+<div class="flex items-center min-w-0"><i class="fa fa-hourglass-half text-primary text-2xl mr-3"></i><h2 class="text-xl font-bold text-gray-800">时间线</h2></div>
+<div class="inline-flex rounded-lg bg-white/70 p-1 border border-white shadow-sm shrink-0">
+<button id="timeline-mode-pending" onclick="setTimelineMode('pending')" class="px-3 py-1.5 rounded-md text-xs font-bold bg-primary text-white shadow-sm">未完成</button>
+<button id="timeline-mode-all" onclick="setTimelineMode('all')" class="px-3 py-1.5 rounded-md text-xs font-bold text-gray-500 hover:bg-white">全部</button>
+</div>
+</div>
+<p class="text-xs text-gray-500 text-center mb-4 shrink-0 bg-white/60 py-2 rounded-lg">左侧为学习DDL，右侧为同人DDL</p>
+<div class="relative py-2 min-h-[300px]" id="auto-timeline-container">
+<div class="absolute left-1/2 top-0 bottom-0 w-0.5 bg-[#E8E4D9] transform -translate-x-1/2 z-0"></div>
+<div id="plan-timeline-list" class="relative z-10 space-y-0 text-sm"></div>
+</div>
+</div>
+</div>
+</div>
+
+<div id="page-history" class="page-view hidden fade-in space-y-6">
+<div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
+<div class="lg:col-span-1 space-y-6">
+<div class="bg-white rounded-2xl p-6 card-shadow min-h-[300px]">
+<h2 class="text-xl font-bold mb-4 border-b border-gray-100 pb-3"><i class="fa fa-calendar text-primary mr-2"></i> 历史日志</h2>
+<div id="history-date-list" class="space-y-2 max-h-[400px] overflow-y-auto pr-2"></div>
+<div id="history-empty" class="hidden text-center py-10 text-gray-400"><i class="fa fa-folder-open-o text-4xl mb-3"></i><p class="text-sm">暂无历史记录</p></div>
+</div>
+<div class="bg-white rounded-2xl p-6 card-shadow hidden" id="history-sidebar-stats">
+<div class="mb-4 pb-4 border-b border-gray-100 text-center flex justify-between">
+<div><p class="text-sm text-gray-500">总消费</p><p class="text-lg font-bold text-danger mt-1" id="hist-expense">¥ 0.00</p></div>
+<div><p class="text-sm text-gray-500">总收入</p><p class="text-lg font-bold text-success mt-1" id="hist-income">¥ 0.00</p></div>
+</div>
+<div class="text-center">
+<p class="text-sm text-gray-500">总工作时长</p>
+<p class="text-2xl font-bold text-primary timer-digit mt-1" id="hist-total-work">0.0 h</p>
+</div>
+</div>
+</div>
+<div class="lg:col-span-3 bg-white rounded-2xl p-6 card-shadow hidden" id="history-detail-panel">
+<div class="flex justify-between items-end border-b border-gray-100 pb-4 mb-6">
+<div><h2 class="text-2xl font-bold" id="hist-date-title">选择日期</h2></div>
+</div>
+<div class="grid grid-cols-1 lg:grid-cols-5 gap-6">
+<div class="lg:col-span-2 space-y-6">
+<div class="bg-gray-50/50 rounded-xl p-4 border border-gray-100">
+<div class="relative h-48 w-full"><canvas id="historyChart"></canvas></div>
+<div class="grid grid-cols-4 gap-2 mt-4 text-center">
+<div><p class="text-xs text-gray-500">学习</p><p class="font-bold text-primary" id="hist-chart-focus">0h</p></div>
+<div><p class="text-xs text-gray-500">运动</p><p class="font-bold text-accent" id="hist-chart-exe">0h</p></div>
+<div><p class="text-xs text-gray-500">摸鱼</p><p class="font-bold text-warning" id="hist-chores">0h</p></div>
+<div><p class="text-xs text-gray-500">拉磨</p><p class="font-bold text-entertainment" id="hist-phone">0h</p></div>
+</div>
+</div>
+<div class="bg-gray-50/50 rounded-xl p-4 border border-gray-100">
+<h3 class="font-bold text-gray-700 mb-3"><i class="fa fa-list-check text-primary mr-2"></i>当日 ToDo</h3>
+<div id="hist-todo-list" class="space-y-2 max-h-[300px] overflow-y-auto"></div>
+</div>
+</div>
+<div class="lg:col-span-3 space-y-4">
+<h3 class="font-bold text-gray-700 mb-2 border-b border-gray-100 pb-2"><i class="fa fa-file-text-o text-primary mr-2"></i>学习记录</h3>
+<div class="bg-primary/5 rounded-lg p-3 border border-primary/20"><h4 class="text-sm font-bold text-primary mb-1" id="hist-label-literature">阅读</h4><p class="text-sm text-gray-600 whitespace-pre-wrap" id="hist-note-lit">无记录</p></div>
+<div class="bg-secondary/5 rounded-lg p-3 border border-secondary/20"><h4 class="text-sm font-bold text-secondary mb-1" id="hist-label-experiment">上课</h4><p class="text-sm text-gray-600 whitespace-pre-wrap" id="hist-note-exp">无记录</p></div>
+<div class="bg-warning/5 rounded-lg p-3 border border-warning/20"><h4 class="text-sm font-bold text-warning mb-1" id="hist-label-writing">论文</h4><p class="text-sm text-gray-600 whitespace-pre-wrap" id="hist-note-wri">无记录</p></div>
+<div class="bg-accent/5 rounded-lg p-3 border border-accent/20"><h4 class="text-sm font-bold text-accent mb-1" id="hist-label-exercise">运动</h4><p class="text-sm text-gray-600 whitespace-pre-wrap" id="hist-note-exe">无记录</p></div>
+<h3 class="font-bold text-gray-700 mt-6 mb-2 border-b border-gray-100 pb-2"><i class="fa fa-gamepad text-warning mr-2"></i>摸鱼与拉磨记录</h3>
+<div class="grid grid-cols-2 gap-4">
+<div class="bg-warning/5 rounded-lg p-3 border border-warning/20 max-h-[150px] overflow-y-auto">
+<h4 class="text-sm font-bold text-warning mb-1">摸鱼记录</h4>
+<div id="hist-slack-log" class="text-sm text-gray-600 space-y-1"></div>
+</div>
+<div class="bg-entertainment/5 rounded-lg p-3 border border-entertainment/20 max-h-[150px] overflow-y-auto">
+<h4 class="text-sm font-bold text-entertainment mb-1">拉磨记录</h4>
+<div id="hist-grind-log" class="text-sm text-gray-600 space-y-1"></div>
+</div>
+</div>
+<div class="bg-gray-50/50 rounded-lg p-4 border border-gray-100 mt-4 max-h-[200px] overflow-y-auto">
+<h4 class="text-sm font-bold text-gray-700 mb-2 border-b pb-1">生活账单与足迹</h4>
+<div id="hist-life-log" class="text-sm text-gray-600 space-y-1"></div>
+</div>
+</div>
+</div>
+</div>
+<div class="lg:col-span-3 bg-white rounded-2xl p-6 card-shadow flex items-center justify-center text-gray-400 min-h-[400px]" id="history-placeholder">
+<div class="text-center"><i class="fa fa-mouse-pointer text-4xl mb-3"></i><p>请在左侧选择日期查看详细手账</p></div>
+</div>
+</div>
+</div>
+
+<div id="page-stats" class="page-view hidden fade-in space-y-6">
+<div class="bg-white rounded-2xl p-6 card-shadow">
+<div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 border-b border-gray-100 pb-4 gap-4">
+<div class="flex flex-wrap items-center gap-2">
+<h2 class="text-2xl font-bold text-gray-800"><i class="fa fa-line-chart text-primary mr-2"></i> 数据大盘</h2>
+<button id="export-data-btn" class="px-3 py-1.5 rounded-lg bg-primary/10 text-primary hover:bg-primary/20 transition-colors text-sm font-bold flex items-center gap-1"><i class="fa fa-download"></i><span>导出数据</span></button>
+<button id="import-data-btn" class="px-3 py-1.5 rounded-lg bg-accent/10 text-accent hover:bg-accent/20 transition-colors text-sm font-bold flex items-center gap-1"><i class="fa fa-upload"></i><span>导入数据</span></button>
+<input id="import-data-file" type="file" accept="application/json,.json" class="hidden">
+</div>
+<div class="flex bg-gray-100 rounded-lg p-1" id="stat-range-toggles">
+<button class="px-4 py-1.5 rounded-md text-sm font-bold bg-white shadow-sm text-primary" onclick="renderStats(7)">近7天</button>
+<button class="px-4 py-1.5 rounded-md text-sm font-bold text-gray-600 hover:bg-gray-200" onclick="renderStats(30)">近30天</button>
+<button class="px-4 py-1.5 rounded-md text-sm font-bold text-gray-600 hover:bg-gray-200" onclick="renderStats(365)">近一年</button>
+</div>
+</div>
+
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+<div class="lg:col-span-1 space-y-6">
+<div class="bg-gray-50 rounded-xl p-4 border border-gray-100 h-64 flex flex-col justify-between">
+<div>
+<h3 class="text-sm font-bold text-gray-500 mb-4 border-l-4 border-sleep pl-2">精力管理</h3>
+<div class="space-y-4">
+<div class="flex justify-between items-center bg-white p-4 rounded-lg border border-gray-100 shadow-sm"><span class="text-sm text-gray-600">平均睡眠</span><span class="text-lg font-bold text-sleep" id="stat-avg-sleep">0h</span></div>
+<div class="flex justify-between items-center bg-white p-4 rounded-lg border border-gray-100 shadow-sm"><span class="text-sm text-gray-600">累计运动</span><span class="text-lg font-bold text-accent" id="stat-sum-exercise">0h</span></div>
+</div>
+</div>
+<div class="mt-2 flex justify-center gap-8 text-sm text-gray-600 font-medium">
+<div class="flex items-center"><span class="w-4 h-4 bg-sleep rounded-sm mr-2 opacity-80"></span>睡眠时长</div>
+<div class="flex items-center"><span class="w-4 h-4 bg-accent rounded-sm mr-2 opacity-80"></span>运动时长</div>
+</div>
+</div>
+
+<div class="bg-gray-50 rounded-xl p-4 border border-gray-100 h-64 flex flex-col justify-between">
+<div>
+<h3 class="text-sm font-bold text-gray-500 mb-3 border-l-4 border-primary pl-2">任务概况</h3>
+<div class="space-y-3">
+<div class="flex justify-between items-center bg-white p-3 rounded-lg border border-gray-100 shadow-sm"><span class="text-sm text-gray-600">完成任务</span><span class="text-base font-bold text-success" id="stat-tasks">0</span></div>
+<div class="flex justify-between items-center bg-white p-3 rounded-lg border border-gray-100 shadow-sm"><span class="text-sm text-gray-600">累计学习</span><span class="text-base font-bold text-primary" id="stat-sum-focus">0h</span></div>
+<div class="flex justify-between items-center bg-white p-3 rounded-lg border border-gray-100 shadow-sm"><span class="text-sm text-gray-600">累计拉磨</span><span class="text-base font-bold text-entertainment" id="stat-sum-grind">0h</span></div>
+</div>
+</div>
+<div class="mt-2 flex justify-between px-2 text-sm text-gray-600 font-medium">
+<div class="flex items-center"><span class="w-4 h-4 bg-primary rounded-sm mr-1.5 opacity-80"></span>学习</div>
+<div class="flex items-center"><span class="w-4 h-4 bg-entertainment rounded-sm mr-1.5 opacity-80"></span>拉磨</div>
+<div class="flex items-center"><span class="w-4 h-4 bg-warning rounded-sm mr-1.5 opacity-80"></span>摸鱼</div>
+</div>
+</div>
+
+<div class="bg-gray-50 rounded-xl p-4 border border-gray-100 h-64 flex flex-col justify-between">
+<div>
+<h3 class="text-sm font-bold text-gray-500 mb-3 border-l-4 border-success pl-2">财务总览</h3>
+<div class="space-y-3">
+<div class="flex justify-between items-center bg-white p-3 rounded-lg border border-success/30 shadow-sm"><span class="text-sm text-success" id="stat-income-label">区间收入</span><span class="text-lg font-bold text-success" id="stat-month-income">¥0</span></div>
+<div class="flex justify-between items-center bg-white p-3 rounded-lg border border-danger/30 shadow-sm"><span class="text-sm text-danger" id="stat-expense-label">区间支出</span><span class="text-lg font-bold text-danger" id="stat-month-expense">¥0</span></div>
+</div>
+</div>
+<div class="mt-2 grid grid-cols-2 gap-y-3 gap-x-2 text-sm text-gray-600 font-medium">
+<div class="flex items-center justify-center"><span class="w-4 h-4 bg-success rounded-sm mr-2 opacity-80"></span>二次收入</div>
+<div class="flex items-center justify-center"><span class="w-4 h-4 bg-danger rounded-sm mr-2 opacity-80"></span>二次支出</div>
+<div class="flex items-center justify-center"><span class="w-4 h-4 bg-primary rounded-sm mr-2 opacity-80"></span>三次收入</div>
+<div class="flex items-center justify-center"><span class="w-4 h-4 bg-warning rounded-sm mr-2 opacity-80"></span>三次支出</div>
+</div>
+</div>
+</div>
+
+<div class="lg:col-span-2 space-y-6">
+<div class="h-64 w-full bg-white border border-gray-100 rounded-xl p-4"><canvas id="energyChart"></canvas></div>
+<div class="h-64 w-full bg-white border border-gray-100 rounded-xl p-4"><canvas id="taskChart"></canvas></div>
+<div class="h-64 w-full bg-white border border-gray-100 rounded-xl p-4"><canvas id="financeCompositeChart"></canvas></div>
+</div>
+</div>
+</div>
+</div>
+
+<div id="sync-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/40 px-4">
+<div class="bg-white rounded-2xl card-shadow w-full max-w-lg p-6 border border-gray-100">
+<div class="flex items-start justify-between gap-4 border-b border-gray-100 pb-3 mb-4">
+<div>
+<h2 class="text-xl font-bold text-gray-800 flex items-center"><i class="fa fa-refresh text-primary mr-2"></i>开启加密同步</h2>
+<p class="text-sm text-gray-500 mt-1">这一步只是本地试用流程，后端接好后才会真正上传。</p>
+</div>
+<button id="close-sync-modal" class="text-gray-400 hover:text-danger text-xl leading-none" aria-label="关闭同步设置"><i class="fa fa-times"></i></button>
+</div>
+<div id="sync-step-risk" class="sync-step space-y-4">
+<div class="rounded-xl bg-warning/10 border border-warning/30 p-4 text-sm text-gray-700 leading-6">
+<p class="font-bold text-warning mb-2"><i class="fa fa-exclamation-triangle mr-1"></i>同步前请确认</p>
+<p>同步会把你的数据在本地加密后保存到云端，用于多设备恢复。</p>
+<p>开发者只能看到加密后的乱码，不能查看你的明文记录。</p>
+<p class="font-bold text-danger mt-2">同步口令只保存在你自己这里。口令丢失后，开发者也无法帮你恢复数据。</p>
+</div>
+<label class="flex items-start gap-2 text-sm text-gray-700 cursor-pointer">
+<input id="sync-risk-check" type="checkbox" class="mt-1 rounded text-primary">
+<span>我已理解：需要自己保存同步口令，丢失后无法恢复。</span>
+</label>
+<button id="sync-risk-next" class="w-full py-2.5 rounded-lg bg-primary text-white font-bold hover:bg-opacity-90 disabled:opacity-40 disabled:cursor-not-allowed" disabled>我已理解，开始设置</button>
+</div>
+<div id="sync-step-setup" class="sync-step hidden space-y-4">
+<div class="grid grid-cols-1 gap-3">
+<label class="text-sm font-bold text-gray-700">同步码</label>
+<div class="flex gap-2"><input id="sync-code-input" type="text" class="flex-1 p-2.5 border border-gray-200 rounded-lg outline-none focus:border-primary uppercase" placeholder="自动生成，也可自己填写"><button id="generate-sync-code" class="px-3 rounded-lg bg-gray-100 text-gray-600 hover:bg-gray-200"><i class="fa fa-magic"></i></button></div>
+<label class="text-sm font-bold text-gray-700">同步口令</label>
+<input id="sync-passphrase-input" type="password" class="p-2.5 border border-gray-200 rounded-lg outline-none focus:border-primary" placeholder="请设置一个只有你知道的口令">
+<label class="text-sm font-bold text-gray-700">再次输入同步口令</label>
+<input id="sync-passphrase-confirm" type="password" class="p-2.5 border border-gray-200 rounded-lg outline-none focus:border-primary" placeholder="再输入一次，避免打错">
+</div>
+<p class="text-xs text-gray-500 leading-5">换设备时，需要同时输入同步码和同步口令。同步码负责找到备份，口令负责解密备份。</p>
+<div class="flex flex-col sm:flex-row gap-2">
+<button id="sync-setup-back" class="flex-1 py-2.5 rounded-lg bg-gray-100 text-gray-600 font-bold hover:bg-gray-200">返回</button>
+<button id="sync-setup-save" class="flex-1 py-2.5 rounded-lg bg-primary text-white font-bold hover:bg-opacity-90">保存同步设置</button>
+</div>
+</div>
+<div id="sync-step-done" class="sync-step hidden space-y-4">
+<div class="rounded-xl bg-success/10 border border-success/30 p-4 text-sm text-gray-700 leading-6">
+<p class="font-bold text-success mb-2"><i class="fa fa-check-circle mr-1"></i>同步设置已保存</p>
+<p>当前版本会先在本机生成一份加密备份，模拟云端同步。接入后端后，这份密文会通过接口上传。</p>
+<p class="mt-2">你的同步码：<span id="sync-code-display" class="font-bold text-primary"></span></p>
+</div>
+<div id="sync-status" class="rounded-xl bg-gray-50 border border-gray-100 p-3 text-xs text-gray-500 leading-5">尚未生成加密备份。</div>
+<div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+<button id="sync-upload-test" class="py-2.5 rounded-lg bg-primary/10 text-primary font-bold hover:bg-primary/20"><i class="fa fa-lock mr-1"></i>生成加密备份</button>
+<button id="sync-restore-test" class="py-2.5 rounded-lg bg-accent/10 text-accent font-bold hover:bg-accent/20"><i class="fa fa-unlock-alt mr-1"></i>解密检查</button>
+</div>
+<button id="sync-done-close" class="w-full py-2.5 rounded-lg bg-primary text-white font-bold hover:bg-opacity-90">完成</button>
+</div>
+</div>
+</div>
+<script src="./assets/js/app.js"></script>
+</body>
+</html>

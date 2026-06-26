@@ -1,0 +1,24 @@
+# OS / editor
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# Obsidian workspace cache
+.obsidian/workspace.json
+.obsidian/workspace-mobile.json
+.obsidian/cache/
+.trash/
+
+# Local data and backups
+*.bak
+*.backup
+*backup*.json
+life-work-backup-*.json
+
+# Dependencies / build output if added later
+node_modules/
+dist/
+build/
+.cache/
+.env
+.env.*

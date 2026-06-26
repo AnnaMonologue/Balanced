@@ -1,0 +1,53 @@
+/* 基础动画与UI样式 */
+@layer utilities {
+.card-shadow { box-shadow: 0 10px 25px -5px rgba(139, 170, 158, 0.1), 0 8px 10px -6px rgba(139, 170, 158, 0.05); }
+body.dark .card-shadow { box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3), 0 8px 10px -6px rgba(0, 0, 0, 0.2); }
+.card-hover { transition: all 0.3s ease; }
+.card-hover:hover { transform: translateY(-3px); box-shadow: 0 20px 25px -5px rgba(139, 170, 158, 0.15), 0 10px 10px -5px rgba(139, 170, 158, 0.1); }
+body.dark .card-hover:hover { box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.4), 0 10px 10px -5px rgba(0, 0, 0, 0.3); }
+.timer-digit { font-variant-numeric: tabular-nums; letter-spacing: 1px; }
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+body.dark ::-webkit-scrollbar-thumb { background: #4C524F; }
+.fade-in { animation: fadeIn 0.3s ease-in-out; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+.nav-active { background-color: var(--c-primary) !important; color: white !important; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); }
+.nav-inactive { background-color: transparent; color: var(--text-main); }
+.nav-inactive:hover { background-color: var(--bg-hover); }
+.plan-check:checked + div { text-decoration: line-through; color: var(--text-muted); opacity: 0.7; }
+.plan-check-simple:checked + span { text-decoration: line-through; color: var(--text-muted); }
+}
+
+/* ================= 莫兰迪日夜间双色盘 ================= */
+:root {
+--c-primary: #8BAA9E; --c-secondary: #CBA36F; --c-accent: #A69CAC; --c-success: #7BA082;
+--c-warning: #D99C6A; --c-danger: #C87971; --c-entertainment: #C5979D; --c-sleep: #8494A3;
+--c-fanblue: #8BA1B7; --bg-fan: #E2E8EE;
+--bg-app: #E6EFE9; --bg-card: #ffffff; --bg-beige: #F5F2EB; --bg-hover: #f9fafb; --bg-input: #ffffff;
+--text-main: #5C5E58; --text-muted: #6b7280; --border-color: #e5e7eb;
+}
+
+body.dark {
+--c-primary: #94B5A8; --c-secondary: #D4B080; --c-accent: #B1A7B7; --c-success: #8AB191;
+--c-warning: #E0A878; --c-danger: #D4857D; --c-entertainment: #D0A3A9; --c-sleep: #95A5B5;
+--c-fanblue: #9AAFC5; --bg-fan: #34404B;
+--bg-app: #2A2D2B; --bg-card: #343836; --bg-beige: #3B3C38; --bg-hover: #3E4340; --bg-input: #2F3331;
+--text-main: #E3E5E1; --text-muted: #A3A7A5; --border-color: #4C524F;
+}
+
+body { background-color: var(--bg-app) !important; color: var(--text-main); transition: background-color 0.3s, color 0.3s; }
+body.dark .bg-white { background-color: var(--bg-card) !important; }
+body.dark .bg-beige { background-color: var(--bg-beige) !important; }
+body.dark .bg-fanbg { background-color: var(--bg-fan) !important; }
+body.dark .text-gray-800, body.dark .text-gray-700, body.dark .text-dark { color: var(--text-main) !important; }
+body.dark .text-gray-600, body.dark .text-gray-500, body.dark .text-gray-400 { color: var(--text-muted) !important; }
+body.dark .border-gray-200, body.dark .border-gray-100, body.dark .border-gray-50, body.dark .border-white, body.dark .border-\[\#E8E4D9\] { border-color: var(--border-color) !important; }
+body.dark .bg-gray-50, body.dark .bg-gray-100, body.dark .bg-gray-300 { background-color: var(--bg-hover) !important; }
+body.dark .text-gray-300 { color: var(--text-muted) !important; }
+body.dark .bg-white\/40, body.dark .bg-white\/50, body.dark .bg-white\/70, body.dark .bg-white\/80 { background-color: rgba(52, 56, 54, 0.8) !important; border-color: var(--border-color) !important; }
+body.dark .bg-white\/60 { background-color: rgba(52, 56, 54, 0.6) !important; }
+body.dark input, body.dark textarea, body.dark select { background-color: var(--bg-input) !important; color: var(--text-main) !important; border-color: var(--border-color) !important; }
+body.dark input::placeholder, body.dark textarea::placeholder { color: var(--text-muted) !important; }
+body.dark canvas { filter: brightness(0.92) saturate(0.95); }
